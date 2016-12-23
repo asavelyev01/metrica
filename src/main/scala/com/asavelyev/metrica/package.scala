@@ -1,36 +1,22 @@
 package com.asavelyev
 
 package object metrica {
-  sealed abstract class Real extends Field[Double]
-  implicit object Real extends Real {
-    override def div(l: Double, r: Double) = l / r
 
-    override def mult(l: Double, r: Double) = l * r
-
-    override def add(l: Double, r: Double) = l + r
-
-    override val zero = 0
-
-    override val one = 1
+  object Real extends NumericField[Double] {
+    override def div = (a: T, b: T) => a / b
   }
 
-  object Ints extends Ring[Int] {
-    override def mult(l: Int, r: Int) = l * r
+  object Ints extends NumericRing[Int]
 
-    override def add(l: Int, r: Int) = l + r
-
-    override val zero = 0
-
-    override val one = 1
+  sealed class NumericRing[X: Numeric] extends Ring[X] {
+    protected val op = implicitly[Numeric[X]]
+    //    implicit def c(f: (X, X) => X) = f.curried
+    override val times = op.times _
+    override val plus = op.plus _
+    override val `0` = op.zero
+    override val `1` = op.one
   }
 
+  abstract class NumericField[X: Numeric] extends NumericRing[X] with Field[X]
 
-  sealed abstract class Length extends ContinuumDimension[Double, Real]
-  implicit object Length extends Length
-
-  abstract class LengthUnit extends UnitOfMeasure[Double, Real, Length]
-
-  implicit object m extends BaseUnit[Double, Real, Length]("m")
-
-  val tenmeter = new Quantity[Double, Real, Length](10, m)
 }
